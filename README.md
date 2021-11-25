@@ -4,8 +4,8 @@
 ![[Test](https://github.com/mmiranda/cfdtunnel/actions/workflows/test-coverage.yml)](https://github.com/mmiranda/cfdtunnel/actions/workflows/test-coverage.yml/badge.svg)
 
 
-# Cloudflare Tunnel
-cfdtunnel is a wrapper for [cloudflared](https://github.com/cloudflare/cloudflared) `access` tunnel, designed to access multiple tunnels without having to worry about your `cloudflared` process.
+# Cloudflared Tunnel Wrapper
+**cfdtunnel** is a wrapper for [cloudflared](https://github.com/cloudflare/cloudflared) `access` tunnel, designed to access multiple tunnels without having to worry about your `cloudflared` process.
 
 
 ## Installation
