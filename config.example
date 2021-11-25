@@ -1,0 +1,8 @@
+# Copy this config file to ~/.cfdtunnel/config
+
+[my-profile1]
+host = https://kubernetes.foo.bar.com
+
+[my-profile2]
+host = sql.foo.bar.com
+port = 1234
