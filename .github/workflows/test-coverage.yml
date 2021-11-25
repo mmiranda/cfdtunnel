@@ -6,10 +6,9 @@ jobs:
     steps:
       - name: Setup cloudflared
         run: |
-        echo 'deb http://pkg.cloudflare.com/ xenial main' |
-        sudo tee /etc/apt/sources.list.d/cloudflare-main.list
-        curl -C - https://pkg.cloudflare.com/pubkey.gpg | sudo apt-key add -
-        sudo apt-get update
+          echo 'deb http://pkg.cloudflare.com/ xenial main' | sudo tee /etc/apt/sources.list.d/cloudflare-main.list
+          curl -C - https://pkg.cloudflare.com/pubkey.gpg | sudo apt-key add -
+          sudo apt-get update
 
       - uses: actions/checkout@v2
         with:
