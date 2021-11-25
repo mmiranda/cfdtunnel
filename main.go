@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	IniConfigFile = ".cfdtunnel/configs"
+	IniConfigFile = ".cfdtunnel/config"
 	DefaultPort   = "5555"
 )
 
