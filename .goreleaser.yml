@@ -1,0 +1,55 @@
+# This is an example .goreleaser.yml file with some sane defaults.
+# Make sure to check the documentation at http://goreleaser.com
+before:
+  hooks:
+    - go mod tidy -compat=1.17
+builds:
+  - env:
+      - CGO_ENABLED=0
+    ldflags:
+      - '-s -w -X main.AppVersion={{.Version}}'
+    goos:
+      - linux
+      - windows
+      - darwin
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+# Publish on Homebrew Tap
+brews:
+  -
+    name: cfdtunnel
+    tap:
+      owner: mmiranda
+      name: homebrew-apps
+      branch: main
+
+    commit_author:
+      name: Mateus Miranda
+      email: mateusmiranda@gmail.com
+
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+
+    folder: Formula
+
+    homepage: "https://github.com/mmiranda/cfdtunnel"
+    description: "Use multiple cloudflared tunnel instances on the fly"
+    license: "MIT"
+
+    test: |
+      system "#{bin}/program", "--version"
