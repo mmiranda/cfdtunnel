@@ -1,0 +1,6 @@
+[alias1]
+host = https://kubernetes.foo.bar.com
+port = 1234
+
+[alias2]
+host = sql.foo.bar.com
