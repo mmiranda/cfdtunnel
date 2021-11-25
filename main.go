@@ -79,12 +79,14 @@ func runSubCommand(args Arguments) {
 		os.Exit(1)
 	}
 
-	koutput, errk := exec.Command(args.command, args.args...).Output()
+	output, err := exec.Command(args.command, args.args...).CombinedOutput()
 
-	if errk != nil {
-		log.Fatal(errk.Error())
+	fmt.Println(string(output))
+
+	if err != nil {
+		log.Fatalf("An error occurred trying to run the command %v: %v", args.command, err)
 	}
-	fmt.Println(string(koutput))
+
 }
 
 // readIniConfigFile checks if the file exists
