@@ -1,0 +1,23 @@
+name: Tests
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup cloudflared
+        run: |
+          echo 'deb http://pkg.cloudflare.com/ focal main' | sudo tee /etc/apt/sources.list.d/cloudflare-main.list
+          curl -C - https://pkg.cloudflare.com/pubkey.gpg | sudo apt-key add -
+          sudo apt-get update
+          sudo apt-get install cloudflared
+
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.17'
+      - name: Run coverage
+        run: go test -v ./... -race -coverprofile=coverage.out -covermode=atomic
+      - name: Upload coverage to Codecov
+        run: bash <(curl -s https://codecov.io/bash)
