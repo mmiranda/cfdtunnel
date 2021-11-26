@@ -66,6 +66,7 @@ func main() {
 	commandKill(cmd)
 }
 
+// commandKill Kills an specific *exec.Cmd command
 func commandKill(cmd *exec.Cmd) {
 	log.Debugf("Trying to kill PID: %v", cmd.Process.Pid)
 
@@ -74,6 +75,7 @@ func commandKill(cmd *exec.Cmd) {
 	}
 }
 
+// runSubCommand Runs the SubCommand and its arguments passed to cfdtunnel
 func (args Arguments) runSubCommand() {
 	log.Debugf("Running subcommand: %v", args.command)
 	if !checkSubCommandExists(args.command) {
@@ -113,6 +115,7 @@ func (cfg tunnelConfig) setupEnvironmentVariables() {
 	}
 }
 
+// startProxyTunnel Starts the proxy tunnel (cloudflared process) and return its command instance
 func (tunnelConfig tunnelConfig) startProxyTunnel() *exec.Cmd {
 	log.Debugf("Starting proxy tunnel for %v on port: %v", tunnelConfig.host, tunnelConfig.port)
 
@@ -160,6 +163,7 @@ func (cfg config) readConfigSection(section string) (tunnelConfig, error) {
 	}, nil
 }
 
+// getHomePathIniFile Returns the full path of config file based on users home directory
 func getHomePathIniFile(file string) string {
 	home, _ := os.UserHomeDir()
 
