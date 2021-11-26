@@ -1,11 +1,13 @@
 package main
 
 import (
-	"log"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"testing"
+
+	"log"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/ini.v1"
@@ -130,7 +132,7 @@ func TestTunnelSamePort(t *testing.T) {
 func TestFlagsEmptyArguments(t *testing.T) {
 	// Run the crashing code when FLAG is set
 	if os.Getenv("FLAG") == "1" {
-		// Calls flagArguments withour manipulate os.Args
+		// Calls flagArguments without manipulate os.Args
 		_ = flagArguments()
 		return
 	}
@@ -142,11 +144,11 @@ func TestFlagsEmptyArguments(t *testing.T) {
 
 	// Cast the error as *exec.ExitError and compare the result
 	e, ok := err.(*exec.ExitError)
-	assert.Equal(t, true, ok)
+	assert.True(t, ok)
 	assert.Equal(t, "exit status 1", e.Error())
 }
 
-func TestFlagArguments(t *testing.T) {
+func TestFlagsArguments(t *testing.T) {
 
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
@@ -154,9 +156,31 @@ func TestFlagArguments(t *testing.T) {
 	os.Args = []string{"rootTest", "--profile", "alias", "subcommand", "arg1", "arg2"}
 	args := flagArguments()
 
-	assert.Equal(t, "alias", *args.profile)
+	assert.Equal(t, "alias", args.profile)
 	assert.Equal(t, "subcommand", args.command)
 	assert.Equal(t, []string{"arg1", "arg2"}, args.args)
+}
+
+func TestFlagsProfileMissing(t *testing.T) {
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	// Run the crashing code when FLAG is set
+	if os.Getenv("FLAG") == "1" {
+		os.Args = []string{"rootTest", "subcommand", "arg1", "arg2"}
+		_ = flagArguments()
+		return
+	}
+
+	// Run the test in a subprocess
+	cmd := exec.Command(os.Args[0], "-test.run=TestFlagsProfileMissing")
+	cmd.Env = append(os.Environ(), "FLAG=1")
+	err := cmd.Run()
+
+	// Cast the error as *exec.ExitError and compare the result
+	e, ok := err.(*exec.ExitError)
+	assert.True(t, ok)
+	assert.Equal(t, "exit status 1", e.Error())
 }
 
 func TestSubCommandExists(t *testing.T) {
@@ -172,4 +196,50 @@ func TestConfigSectionDoesNotExists(t *testing.T) {
 	_, err := config.readConfigSection("missing")
 
 	assert.Error(t, err)
+}
+
+func TestRunSubCommandStdOut(t *testing.T) {
+	args := Arguments{
+		profile: "alias",
+		command: "ls",
+		args:    []string{"README.md"},
+	}
+
+	rescueStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	args.runSubCommand()
+
+	w.Close()
+	out, _ := ioutil.ReadAll(r)
+	os.Stdout = rescueStdout
+
+	assert.Equal(t, "README.md\n\n", string(out))
+}
+
+func TestRunSubCommandMissing(t *testing.T) {
+
+	// Run the crashing code when FLAG is set
+	if os.Getenv("FLAG") == "1" {
+		args := Arguments{
+			profile: "alias",
+			command: "lsssss",
+			args:    nil,
+		}
+		args.runSubCommand()
+
+		return
+	}
+
+	// Run the test in a subprocess
+	cmd := exec.Command(os.Args[0], "-test.run=TestRunSubCommandMissing")
+	cmd.Env = append(os.Environ(), "FLAG=1")
+	err := cmd.Run()
+
+	// Cast the error as *exec.ExitError and compare the result
+	e, ok := err.(*exec.ExitError)
+	assert.True(t, ok)
+	assert.Equal(t, "exit status 1", e.Error())
+
 }

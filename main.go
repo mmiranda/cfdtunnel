@@ -36,7 +36,7 @@ type config struct {
 
 // Arguments struct stores the arguments passed to cfdtunel such as the profile to use, the command to run and the arguments for that command
 type Arguments struct {
-	profile *string
+	profile string
 	command string
 	args    []string
 }
@@ -53,13 +53,13 @@ func main() {
 	config, err := readIniConfigFile(getHomePathIniFile(iniConfigFile))
 
 	if err != nil {
-		log.Fatalf("An error occured reading your INI file: %v", err.Error())
+		log.Fatalf("An error occurred reading your INI file: %v", err.Error())
 	}
 
-	tunnelConfig, err := config.readConfigSection(*args.profile)
+	tunnelConfig, err := config.readConfigSection(args.profile)
 
 	if err != nil {
-		log.Fatalf("An error occured reading your INI file: %v", err.Error())
+		log.Fatalf("An error occurred reading your INI file: %v", err.Error())
 	}
 	tunnelConfig.setupEnvironmentVariables()
 	cmd := tunnelConfig.startProxyTunnel()
@@ -145,7 +145,7 @@ func (cfg config) readConfigSection(section string) (TunnelConfig, error) {
 	secs, err := cfg.ini.GetSection(section)
 
 	if err != nil {
-		log.Debugf("An error occured: %v", err.Error())
+		log.Debugf("An error occurred: %v", err.Error())
 		return TunnelConfig{}, err
 	}
 
@@ -192,15 +192,14 @@ func flagArguments() Arguments {
 	}
 
 	if *profile == "" {
-		fmt.Println("Usage: cfdtunnel --profile xxx command args")
+		fmt.Println("Usage: cfdtunnel --profile my-profile command args")
 		os.Exit(1)
-		return Arguments{}
 	}
 
 	args := flag.Args()
 
 	return Arguments{
-		profile: profile,
+		profile: *profile,
 		command: args[0],
 		args:    args[1:],
 	}
@@ -210,7 +209,7 @@ func flagArguments() Arguments {
 func checkSubCommandExists(command string) bool {
 	_, err := exec.LookPath(command)
 	if err != nil {
-		log.Errorf("An error occured: %v", err.Error())
+		log.Errorf("An error occurred: %v", err.Error())
 		return false
 	}
 
