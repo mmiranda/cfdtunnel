@@ -47,13 +47,20 @@ Example:
 ```ini
 [my-profile1]
 host = https://kubernetes.foo.bar.com
+port = 1234
+env = HTTPS_PROXY=127.0.0.1:1234
+# env = OTHER=value
 
 [my-profile2]
 host = sql.foo.bar.com
-port = 1234
+# port is not necessary
 ```
 
 Defining a port is not required, if you don't specify, *cfdtunnel* will launch the tunnel using the ~~most random~~ port **5555**
+
+#### Environment Variables
+
+In case your application demands specific environment variables, *cfdtunnel* will make sure it is created prior to its execution. You just need to define it on config file as well.
 
 ## Contributing
 Contributions, issues, and feature requests are welcome!
