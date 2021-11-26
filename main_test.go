@@ -148,7 +148,7 @@ func TestFlagsEmptyArguments(t *testing.T) {
 	assert.Equal(t, "exit status 1", e.Error())
 }
 
-func TestFlagArguments(t *testing.T) {
+func TestFlagsArguments(t *testing.T) {
 
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
@@ -159,6 +159,28 @@ func TestFlagArguments(t *testing.T) {
 	assert.Equal(t, "alias", args.profile)
 	assert.Equal(t, "subcommand", args.command)
 	assert.Equal(t, []string{"arg1", "arg2"}, args.args)
+}
+
+func TestFlagsProfileMissing(t *testing.T) {
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	// Run the crashing code when FLAG is set
+	if os.Getenv("FLAG") == "1" {
+		os.Args = []string{"rootTest", "subcommand", "arg1", "arg2"}
+		_ = flagArguments()
+		return
+	}
+
+	// Run the test in a subprocess
+	cmd := exec.Command(os.Args[0], "-test.run=TestFlagsProfileMissing")
+	cmd.Env = append(os.Environ(), "FLAG=1")
+	err := cmd.Run()
+
+	// Cast the error as *exec.ExitError and compare the result
+	e, ok := err.(*exec.ExitError)
+	assert.True(t, ok)
+	assert.Equal(t, "exit status 1", e.Error())
 }
 
 func TestSubCommandExists(t *testing.T) {

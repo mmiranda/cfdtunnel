@@ -192,9 +192,8 @@ func flagArguments() Arguments {
 	}
 
 	if *profile == "" {
-		fmt.Println("Usage: cfdtunnel --profile xxx command args")
+		fmt.Println("Usage: cfdtunnel --profile my-profile command args")
 		os.Exit(1)
-		return Arguments{}
 	}
 
 	args := flag.Args()
