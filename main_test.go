@@ -61,7 +61,7 @@ func TestSectionComplete(t *testing.T) {
 
 	tunnelCfg, err := config.readConfigSection("alias1")
 
-	assert.IsType(t, tunnelConfig{}, tunnelCfg)
+	assert.IsType(t, TunnelConfig{}, tunnelCfg)
 	assert.Equal(t, "https://kubernetes.foo.bar.com", tunnelCfg.host)
 	assert.Equal(t, "1234", tunnelCfg.port)
 	assert.NoError(t, err)
@@ -72,14 +72,39 @@ func TestSectionDefaultPort(t *testing.T) {
 
 	tunnelCfg, err := config.readConfigSection("alias2")
 
-	assert.IsType(t, tunnelConfig{}, tunnelCfg)
+	assert.IsType(t, TunnelConfig{}, tunnelCfg)
 	assert.Equal(t, "sql.foo.bar.com", tunnelCfg.host)
-	assert.Equal(t, DefaultPort, tunnelCfg.port)
+	assert.Equal(t, localClientDefaultPort, tunnelCfg.port)
 	assert.NoError(t, err)
 }
 
+func TestIniEnvVars(t *testing.T) {
+	config, _ := readIniConfigFile("test/config")
+
+	tunnelCfg, err := config.readConfigSection("test-env-var")
+	assert.Equal(t, []string{"MY_ENV_VAR=value"}, tunnelCfg.envVars)
+	assert.NoError(t, err)
+
+	tunnelCfg, err = config.readConfigSection("test-multi-env-var")
+	assert.Equal(t, []string{"MY_ENV_VAR=value", "HTTPS_PROXY=127.0.0.1:5555"}, tunnelCfg.envVars)
+	assert.NoError(t, err)
+
+}
+
+func TestOSEnvVars(t *testing.T) {
+	config, _ := readIniConfigFile("test/config")
+	tunnelCfg, _ := config.readConfigSection("test-multi-env-var")
+
+	tunnelCfg.setupEnvironmentVariables()
+
+	assert.Equal(t, "value", os.Getenv("MY_ENV_VAR"))
+	assert.Equal(t, "127.0.0.1:5555", os.Getenv("HTTPS_PROXY"))
+
+}
+
 func TestProxyTunnel(t *testing.T) {
-	cmd := startProxyTunnel(tunnelConfig{"foo.bar", "1234"})
+	tunnelConfig := TunnelConfig{"foo.bar", "1234", nil}
+	cmd := tunnelConfig.startProxyTunnel()
 	osPid, _ := os.FindProcess(cmd.Process.Pid)
 	assert.Equal(t, cmd.Process.Pid, osPid.Pid)
 	commandKill(cmd)
@@ -87,9 +112,12 @@ func TestProxyTunnel(t *testing.T) {
 }
 
 func TestTunnelSamePort(t *testing.T) {
-	cmd1 := startProxyTunnel(tunnelConfig{"foo.bar.first", "1234"})
 
-	cmd2 := startProxyTunnel(tunnelConfig{"foo.bar.second", "1234"})
+	tunnelCfg := TunnelConfig{"foo.bar.first", "1234", nil}
+	cmd1 := tunnelCfg.startProxyTunnel()
+
+	tunnelCfg = TunnelConfig{"foo.bar.first", "1234", nil}
+	cmd2 := tunnelCfg.startProxyTunnel()
 
 	err := cmd2.Wait()
 	assert.Error(t, err)
