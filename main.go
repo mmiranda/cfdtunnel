@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -12,24 +13,28 @@ import (
 )
 
 const (
-	IniConfigFile = ".cfdtunnel/config"
-	DefaultPort   = "5555"
+	iniConfigFile          = ".cfdtunnel/config"
+	localClientDefaultPort = "5555"
 )
 
 var (
-	LogLevel   = log.WarnLevel
-	AppVersion = "Development"
+	logLevel   = log.WarnLevel
+	appVersion = "Development"
 )
 
-type tunnelConfig struct {
-	host string
-	port string
+// TunnelConfig struct stores data to launch cloudflared process such as hostname and port.
+// It also stores preset Environment Variables needed to use together with the tunnel consumer.
+type TunnelConfig struct {
+	host    string
+	port    string
+	envVars []string
 }
 
 type config struct {
 	ini *ini.File
 }
 
+// Arguments struct stores the arguments passed to cfdtunel such as the profile to use, the command to run and the arguments for that command
 type Arguments struct {
 	profile *string
 	command string
@@ -38,14 +43,14 @@ type Arguments struct {
 
 func init() {
 	log.SetOutput(os.Stdout)
-	log.SetLevel(LogLevel)
+	log.SetLevel(logLevel)
 }
 
 func main() {
 	args := flagArguments()
-	log.SetLevel(LogLevel)
+	log.SetLevel(logLevel)
 
-	config, err := readIniConfigFile(getHomePathIniFile(IniConfigFile))
+	config, err := readIniConfigFile(getHomePathIniFile(iniConfigFile))
 
 	if err != nil {
 		log.Fatalf("An error occured reading your INI file: %v", err.Error())
@@ -56,15 +61,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("An error occured reading your INI file: %v", err.Error())
 	}
-
-	cmd := startProxyTunnel(tunnelConfig)
-	os.Setenv("HTTPS_PROXY", "socks5://127.0.0.1:"+tunnelConfig.port)
-	runSubCommand(args)
+	tunnelConfig.setupEnvironmentVariables()
+	cmd := tunnelConfig.startProxyTunnel()
+	args.runSubCommand()
 
 	// Kill it:
 	commandKill(cmd)
 }
 
+// commandKill Kills an specific *exec.Cmd command
 func commandKill(cmd *exec.Cmd) {
 	log.Debugf("Trying to kill PID: %v", cmd.Process.Pid)
 
@@ -73,7 +78,8 @@ func commandKill(cmd *exec.Cmd) {
 	}
 }
 
-func runSubCommand(args Arguments) {
+// runSubCommand Runs the SubCommand and its arguments passed to cfdtunnel
+func (args Arguments) runSubCommand() {
 	log.Debugf("Running subcommand: %v", args.command)
 	if !checkSubCommandExists(args.command) {
 		os.Exit(1)
@@ -89,10 +95,10 @@ func runSubCommand(args Arguments) {
 
 }
 
-// readIniConfigFile checks if the file exists
+// readIniConfigFile reads and load the config file.
 func readIniConfigFile(configFile string) (config, error) {
 
-	cfg, err := ini.Load(configFile)
+	cfg, err := ini.ShadowLoad(configFile)
 
 	if err != nil {
 		return config{}, err
@@ -103,7 +109,17 @@ func readIniConfigFile(configFile string) (config, error) {
 	}, err
 }
 
-func startProxyTunnel(tunnelConfig tunnelConfig) *exec.Cmd {
+// setupEnvironmentVariables Sets every environment variables that are expected and informed on the config file
+func (tunnelConfig TunnelConfig) setupEnvironmentVariables() {
+	for _, env := range tunnelConfig.envVars {
+		iniEnv := strings.Split(env, "=")
+		log.Debugf("Exporting Environment variable: %v", env)
+		os.Setenv(iniEnv[0], iniEnv[1])
+	}
+}
+
+// startProxyTunnel Starts the proxy tunnel (cloudflared process) and return its command instance
+func (tunnelConfig TunnelConfig) startProxyTunnel() *exec.Cmd {
 	log.Debugf("Starting proxy tunnel for %v on port: %v", tunnelConfig.host, tunnelConfig.port)
 
 	cmd := exec.Command("cloudflared", "access", "tcp", "--hostname", tunnelConfig.host, "--url", "127.0.0.1:"+tunnelConfig.port)
@@ -122,36 +138,43 @@ func startProxyTunnel(tunnelConfig tunnelConfig) *exec.Cmd {
 	return cmd
 }
 
-func (cfg config) readConfigSection(section string) (tunnelConfig, error) {
+// readConfigSection reads an specific section from a config file.
+// It returns a tunnelConfig struct containing the hostname, port and any environment variable needed
+func (cfg config) readConfigSection(section string) (TunnelConfig, error) {
 
 	secs, err := cfg.ini.GetSection(section)
 
 	if err != nil {
 		log.Debugf("An error occured: %v", err.Error())
-		return tunnelConfig{}, err
+		return TunnelConfig{}, err
 	}
 
 	host, _ := secs.GetKey("host")
-
 	port := secs.Key("port").Validate(func(port string) string {
 		if len(port) == 0 {
-			return DefaultPort
+			return localClientDefaultPort
 		}
 		return port
 	})
 
-	return tunnelConfig{
-		host: host.String(),
-		port: port,
+	envVars := secs.Key("env").ValueWithShadows()
+
+	return TunnelConfig{
+		host:    host.String(),
+		port:    port,
+		envVars: envVars,
 	}, nil
 }
 
+// getHomePathIniFile Returns the full path of config file based on users home directory
 func getHomePathIniFile(file string) string {
 	home, _ := os.UserHomeDir()
 
 	return home + "/" + file
 }
 
+// flagArguments Reads and parde the arguments passed to cfdtunnel.
+// It returns an Argument Struct containing the profile, subcommand to run and all the arguments for the subcommand
 func flagArguments() Arguments {
 	profile := flag.String("profile", "", "Which cfdtunnel profile to use")
 	version := flag.Bool("version", false, "Show cfdtunnel version")
@@ -160,12 +183,12 @@ func flagArguments() Arguments {
 	flag.Parse()
 
 	if *version {
-		fmt.Println(AppVersion)
+		fmt.Println(appVersion)
 		os.Exit(0)
 	}
 
 	if *debug {
-		LogLevel = log.DebugLevel
+		logLevel = log.DebugLevel
 	}
 
 	if *profile == "" {
@@ -183,6 +206,7 @@ func flagArguments() Arguments {
 	}
 }
 
+// checkSubCommandExists simple check if an specific binary exists in the OS
 func checkSubCommandExists(command string) bool {
 	_, err := exec.LookPath(command)
 	if err != nil {
