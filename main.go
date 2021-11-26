@@ -13,16 +13,18 @@ import (
 )
 
 const (
-	IniConfigFile = ".cfdtunnel/config"
-	DefaultPort   = "5555"
+	iniConfigFile          = ".cfdtunnel/config"
+	localClientDefaultPort = "5555"
 )
 
 var (
-	LogLevel   = log.WarnLevel
-	AppVersion = "Development"
+	logLevel   = log.WarnLevel
+	appVersion = "Development"
 )
 
-type tunnelConfig struct {
+// TunnelConfig struct stores data to launch cloudflared process such as hostname and port.
+// It also stores preset Environment Variables needed to use together with the tunnel consumer.
+type TunnelConfig struct {
 	host    string
 	port    string
 	envVars []string
@@ -32,6 +34,7 @@ type config struct {
 	ini *ini.File
 }
 
+// Arguments struct stores the arguments passed to cfdtunel such as the profile to use, the command to run and the arguments for that command
 type Arguments struct {
 	profile *string
 	command string
@@ -40,14 +43,14 @@ type Arguments struct {
 
 func init() {
 	log.SetOutput(os.Stdout)
-	log.SetLevel(LogLevel)
+	log.SetLevel(logLevel)
 }
 
 func main() {
 	args := flagArguments()
-	log.SetLevel(LogLevel)
+	log.SetLevel(logLevel)
 
-	config, err := readIniConfigFile(getHomePathIniFile(IniConfigFile))
+	config, err := readIniConfigFile(getHomePathIniFile(iniConfigFile))
 
 	if err != nil {
 		log.Fatalf("An error occured reading your INI file: %v", err.Error())
@@ -107,8 +110,8 @@ func readIniConfigFile(configFile string) (config, error) {
 }
 
 // setupEnvironmentVariables Sets every environment variables that are expected and informed on the config file
-func (cfg tunnelConfig) setupEnvironmentVariables() {
-	for _, env := range cfg.envVars {
+func (tunnelConfig TunnelConfig) setupEnvironmentVariables() {
+	for _, env := range tunnelConfig.envVars {
 		iniEnv := strings.Split(env, "=")
 		log.Debugf("Exporting Environment variable: %v", env)
 		os.Setenv(iniEnv[0], iniEnv[1])
@@ -116,7 +119,7 @@ func (cfg tunnelConfig) setupEnvironmentVariables() {
 }
 
 // startProxyTunnel Starts the proxy tunnel (cloudflared process) and return its command instance
-func (tunnelConfig tunnelConfig) startProxyTunnel() *exec.Cmd {
+func (tunnelConfig TunnelConfig) startProxyTunnel() *exec.Cmd {
 	log.Debugf("Starting proxy tunnel for %v on port: %v", tunnelConfig.host, tunnelConfig.port)
 
 	cmd := exec.Command("cloudflared", "access", "tcp", "--hostname", tunnelConfig.host, "--url", "127.0.0.1:"+tunnelConfig.port)
@@ -137,26 +140,26 @@ func (tunnelConfig tunnelConfig) startProxyTunnel() *exec.Cmd {
 
 // readConfigSection reads an specific section from a config file.
 // It returns a tunnelConfig struct containing the hostname, port and any environment variable needed
-func (cfg config) readConfigSection(section string) (tunnelConfig, error) {
+func (cfg config) readConfigSection(section string) (TunnelConfig, error) {
 
 	secs, err := cfg.ini.GetSection(section)
 
 	if err != nil {
 		log.Debugf("An error occured: %v", err.Error())
-		return tunnelConfig{}, err
+		return TunnelConfig{}, err
 	}
 
 	host, _ := secs.GetKey("host")
 	port := secs.Key("port").Validate(func(port string) string {
 		if len(port) == 0 {
-			return DefaultPort
+			return localClientDefaultPort
 		}
 		return port
 	})
 
 	envVars := secs.Key("env").ValueWithShadows()
 
-	return tunnelConfig{
+	return TunnelConfig{
 		host:    host.String(),
 		port:    port,
 		envVars: envVars,
@@ -180,12 +183,12 @@ func flagArguments() Arguments {
 	flag.Parse()
 
 	if *version {
-		fmt.Println(AppVersion)
+		fmt.Println(appVersion)
 		os.Exit(0)
 	}
 
 	if *debug {
-		LogLevel = log.DebugLevel
+		logLevel = log.DebugLevel
 	}
 
 	if *profile == "" {
