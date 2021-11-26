@@ -1,6 +1,6 @@
 [![made-with-Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](http://golang.org)
 [![codecov](https://codecov.io/gh/mmiranda/cfdtunnel/branch/main/graph/badge.svg?token=HAUMRJQ4OX)](https://codecov.io/gh/mmiranda/cfdtunnel)
-[![https://goreportcard.com/report/github.com/mmiranda/cfdtunnel](https://goreportcard.com/badge/github.com/mmiranda/cfdtunnel)](https://goreportcard.com/report/github.com/mmiranda/markdown-index)
+[![https://goreportcard.com/report/github.com/mmiranda/cfdtunnel](https://goreportcard.com/badge/github.com/mmiranda/cfdtunnel)](https://goreportcard.com/report/github.com/mmiranda/cftunnel)
 ![[Test](https://github.com/mmiranda/cfdtunnel/actions/workflows/test-coverage.yml)](https://github.com/mmiranda/cfdtunnel/actions/workflows/test-coverage.yml/badge.svg)
 
 
