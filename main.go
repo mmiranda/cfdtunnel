@@ -53,13 +53,13 @@ func main() {
 	config, err := readIniConfigFile(getHomePathIniFile(iniConfigFile))
 
 	if err != nil {
-		log.Fatalf("An error occured reading your INI file: %v", err.Error())
+		log.Fatalf("An error occurred reading your INI file: %v", err.Error())
 	}
 
 	tunnelConfig, err := config.readConfigSection(*args.profile)
 
 	if err != nil {
-		log.Fatalf("An error occured reading your INI file: %v", err.Error())
+		log.Fatalf("An error occurred reading your INI file: %v", err.Error())
 	}
 	tunnelConfig.setupEnvironmentVariables()
 	cmd := tunnelConfig.startProxyTunnel()
@@ -145,7 +145,7 @@ func (cfg config) readConfigSection(section string) (TunnelConfig, error) {
 	secs, err := cfg.ini.GetSection(section)
 
 	if err != nil {
-		log.Debugf("An error occured: %v", err.Error())
+		log.Debugf("An error occurred: %v", err.Error())
 		return TunnelConfig{}, err
 	}
 
@@ -210,7 +210,7 @@ func flagArguments() Arguments {
 func checkSubCommandExists(command string) bool {
 	_, err := exec.LookPath(command)
 	if err != nil {
-		log.Errorf("An error occured: %v", err.Error())
+		log.Errorf("An error occurred: %v", err.Error())
 		return false
 	}
 
