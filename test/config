@@ -4,3 +4,12 @@ port = 1234
 
 [alias2]
 host = sql.foo.bar.com
+
+[test-multi-env-var]
+host = foo.bar.com
+env = MY_ENV_VAR=value
+env = HTTPS_PROXY=127.0.0.1:5555
+
+[test-env-var]
+host = foo.bar.com
+env = MY_ENV_VAR=value
