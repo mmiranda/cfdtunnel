@@ -36,7 +36,7 @@ type config struct {
 
 // Arguments struct stores the arguments passed to cfdtunel such as the profile to use, the command to run and the arguments for that command
 type Arguments struct {
-	profile *string
+	profile string
 	command string
 	args    []string
 }
@@ -56,7 +56,7 @@ func main() {
 		log.Fatalf("An error occurred reading your INI file: %v", err.Error())
 	}
 
-	tunnelConfig, err := config.readConfigSection(*args.profile)
+	tunnelConfig, err := config.readConfigSection(args.profile)
 
 	if err != nil {
 		log.Fatalf("An error occurred reading your INI file: %v", err.Error())
@@ -200,7 +200,7 @@ func flagArguments() Arguments {
 	args := flag.Args()
 
 	return Arguments{
-		profile: profile,
+		profile: *profile,
 		command: args[0],
 		args:    args[1:],
 	}
