@@ -1,4 +1,4 @@
-package main
+package cfdtunnel
 
 import (
 	"flag"
@@ -22,6 +22,11 @@ var (
 	appVersion = "Development"
 )
 
+var CLI struct {
+	Profile string `help:"Which profile to use."`
+	Debug   bool   `help:"Enable debug mode."`
+}
+
 // TunnelConfig struct stores data to launch cloudflared process such as hostname and port.
 // It also stores preset Environment Variables needed to use together with the tunnel consumer.
 type TunnelConfig struct {
@@ -36,9 +41,9 @@ type config struct {
 
 // Arguments struct stores the arguments passed to cfdtunel such as the profile to use, the command to run and the arguments for that command
 type Arguments struct {
-	profile string
-	command string
-	args    []string
+	Profile string
+	Command string
+	Args    []string
 }
 
 func init() {
@@ -56,7 +61,7 @@ func main() {
 		log.Fatalf("An error occurred reading your INI file: %v", err.Error())
 	}
 
-	tunnelConfig, err := config.readConfigSection(args.profile)
+	tunnelConfig, err := config.readConfigSection(args.Profile)
 
 	if err != nil {
 		log.Fatalf("An error occurred reading your INI file: %v", err.Error())
@@ -80,17 +85,17 @@ func commandKill(cmd *exec.Cmd) {
 
 // runSubCommand Runs the SubCommand and its arguments passed to cfdtunnel
 func (args Arguments) runSubCommand() {
-	log.Debugf("Running subcommand: %v", args.command)
-	if !checkSubCommandExists(args.command) {
+	log.Debugf("Running subcommand: %v", args.Command)
+	if !checkSubCommandExists(args.Command) {
 		os.Exit(1)
 	}
 
-	output, err := exec.Command(args.command, args.args...).CombinedOutput()
+	output, err := exec.Command(args.Command, args.Args...).CombinedOutput()
 
 	fmt.Println(string(output))
 
 	if err != nil {
-		log.Fatalf("An error occurred trying to run the command %v: %v", args.command, err)
+		log.Fatalf("An error occurred trying to run the command %v: %v", args.Command, err)
 	}
 
 }
@@ -176,6 +181,7 @@ func getHomePathIniFile(file string) string {
 // flagArguments Reads and parde the arguments passed to cfdtunnel.
 // It returns an Argument Struct containing the profile, subcommand to run and all the arguments for the subcommand
 func flagArguments() Arguments {
+
 	profile := flag.String("profile", "", "Which cfdtunnel profile to use")
 	version := flag.Bool("version", false, "Show cfdtunnel version")
 	debug := flag.Bool("debug", false, "Enable Debug mode")
@@ -199,9 +205,9 @@ func flagArguments() Arguments {
 	args := flag.Args()
 
 	return Arguments{
-		profile: *profile,
-		command: args[0],
-		args:    args[1:],
+		Profile: *profile,
+		Command: args[0],
+		Args:    args[1:],
 	}
 }
 

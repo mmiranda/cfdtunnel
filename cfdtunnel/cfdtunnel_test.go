@@ -1,4 +1,4 @@
-package main
+package cfdtunnel
 
 import (
 	"io/ioutil"
@@ -59,7 +59,7 @@ func helperCreateFile() {
 }
 
 func TestSectionComplete(t *testing.T) {
-	config, _ := readIniConfigFile("test/config")
+	config, _ := readIniConfigFile("../test/config")
 
 	tunnelCfg, err := config.readConfigSection("alias1")
 
@@ -70,7 +70,7 @@ func TestSectionComplete(t *testing.T) {
 }
 
 func TestSectionDefaultPort(t *testing.T) {
-	config, _ := readIniConfigFile("test/config")
+	config, _ := readIniConfigFile("../test/config")
 
 	tunnelCfg, err := config.readConfigSection("alias2")
 
@@ -81,7 +81,7 @@ func TestSectionDefaultPort(t *testing.T) {
 }
 
 func TestIniEnvVars(t *testing.T) {
-	config, _ := readIniConfigFile("test/config")
+	config, _ := readIniConfigFile("../test/config")
 
 	tunnelCfg, err := config.readConfigSection("test-env-var")
 	assert.Equal(t, []string{"MY_ENV_VAR=value"}, tunnelCfg.envVars)
@@ -94,7 +94,7 @@ func TestIniEnvVars(t *testing.T) {
 }
 
 func TestOSEnvVars(t *testing.T) {
-	config, _ := readIniConfigFile("test/config")
+	config, _ := readIniConfigFile("../test/config")
 	tunnelCfg, _ := config.readConfigSection("test-multi-env-var")
 
 	tunnelCfg.setupEnvironmentVariables()
@@ -156,9 +156,9 @@ func TestFlagsArguments(t *testing.T) {
 	os.Args = []string{"rootTest", "--profile", "alias", "subcommand", "arg1", "arg2"}
 	args := flagArguments()
 
-	assert.Equal(t, "alias", args.profile)
-	assert.Equal(t, "subcommand", args.command)
-	assert.Equal(t, []string{"arg1", "arg2"}, args.args)
+	assert.Equal(t, "alias", args.Profile)
+	assert.Equal(t, "subcommand", args.Command)
+	assert.Equal(t, []string{"arg1", "arg2"}, args.Args)
 }
 
 func TestFlagsProfileMissing(t *testing.T) {
@@ -191,7 +191,7 @@ func TestSubCommandExists(t *testing.T) {
 }
 
 func TestConfigSectionDoesNotExists(t *testing.T) {
-	config, _ := readIniConfigFile("test/config")
+	config, _ := readIniConfigFile("../test/config")
 
 	_, err := config.readConfigSection("missing")
 
@@ -200,9 +200,9 @@ func TestConfigSectionDoesNotExists(t *testing.T) {
 
 func TestRunSubCommandStdOut(t *testing.T) {
 	args := Arguments{
-		profile: "alias",
-		command: "ls",
-		args:    []string{"README.md"},
+		Profile: "alias",
+		Command: "ls",
+		Args:    []string{"cfdtunnel.go"},
 	}
 
 	rescueStdout := os.Stdout
@@ -215,7 +215,7 @@ func TestRunSubCommandStdOut(t *testing.T) {
 	out, _ := ioutil.ReadAll(r)
 	os.Stdout = rescueStdout
 
-	assert.Equal(t, "README.md\n\n", string(out))
+	assert.Equal(t, "cfdtunnel.go\n\n", string(out))
 }
 
 func TestRunSubCommandMissing(t *testing.T) {
@@ -223,9 +223,9 @@ func TestRunSubCommandMissing(t *testing.T) {
 	// Run the crashing code when FLAG is set
 	if os.Getenv("FLAG") == "1" {
 		args := Arguments{
-			profile: "alias",
-			command: "lsssss",
-			args:    nil,
+			Profile: "alias",
+			Command: "lsssss",
+			Args:    nil,
 		}
 		args.runSubCommand()
 
