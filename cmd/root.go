@@ -43,7 +43,6 @@ var (
 		Run: func(_ *cobra.Command, _ []string) {
 			resp := goVersion.FuncWithOutput(shortened, version, commit, date, versionOutput)
 			fmt.Print(resp)
-			return
 		},
 	}
 )
@@ -59,7 +58,7 @@ func init() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
 	rootCmd.PersistentFlags().StringVar(&profile, "profile", "", "Which cfdtunnel profile to use")
-	rootCmd.MarkPersistentFlagRequired("profile")
+	_ = rootCmd.MarkPersistentFlagRequired("profile")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "short", "d", false, "Enable Debug Mode.")
 
 }
