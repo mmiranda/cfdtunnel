@@ -83,7 +83,11 @@ func TestSectionDefaultPort(t *testing.T) {
 func TestIniEnvVars(t *testing.T) {
 	config, _ := readIniConfigFile("../test/config")
 
-	tunnelCfg, err := config.readConfigSection("test-env-var")
+	tunnelCfg, err := config.readConfigSection("alias1")
+	assert.Equal(t, []string{}, tunnelCfg.envVars)
+	assert.NoError(t, err)
+
+	tunnelCfg, err = config.readConfigSection("test-env-var")
 	assert.Equal(t, []string{"MY_ENV_VAR=value"}, tunnelCfg.envVars)
 	assert.NoError(t, err)
 
@@ -101,6 +105,11 @@ func TestOSEnvVars(t *testing.T) {
 
 	assert.Equal(t, "value", os.Getenv("MY_ENV_VAR"))
 	assert.Equal(t, "127.0.0.1:5555", os.Getenv("HTTPS_PROXY"))
+
+	tunnelCfg, _ = config.readConfigSection("alias1")
+
+	tunnelCfg.setupEnvironmentVariables()
+	assert.Empty(t, os.Getenv("DOES_NOT_EXISTS"))
 
 }
 
@@ -125,62 +134,6 @@ func TestTunnelSamePort(t *testing.T) {
 	assert.Error(t, err)
 
 	commandKill(cmd1)
-}
-
-// TestFlagsEnptyArguments uses the approach from Sartaj Singh on his article: https://sr-taj.medium.com/how-to-test-methods-that-kill-your-program-in-golang-e3b879185b8a
-// What we want to test here is the os.Exit(1) when flagArguments() fail with empty arguments
-func TestFlagsEmptyArguments(t *testing.T) {
-	// Run the crashing code when FLAG is set
-	if os.Getenv("FLAG") == "1" {
-		// Calls flagArguments without manipulate os.Args
-		_ = flagArguments()
-		return
-	}
-
-	// Run the test in a subprocess
-	cmd := exec.Command(os.Args[0], "-test.run=TestFlagsEmptyArguments")
-	cmd.Env = append(os.Environ(), "FLAG=1")
-	err := cmd.Run()
-
-	// Cast the error as *exec.ExitError and compare the result
-	e, ok := err.(*exec.ExitError)
-	assert.True(t, ok)
-	assert.Equal(t, "exit status 1", e.Error())
-}
-
-func TestFlagsArguments(t *testing.T) {
-
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-
-	os.Args = []string{"rootTest", "--profile", "alias", "subcommand", "arg1", "arg2"}
-	args := flagArguments()
-
-	assert.Equal(t, "alias", args.Profile)
-	assert.Equal(t, "subcommand", args.Command)
-	assert.Equal(t, []string{"arg1", "arg2"}, args.Args)
-}
-
-func TestFlagsProfileMissing(t *testing.T) {
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-
-	// Run the crashing code when FLAG is set
-	if os.Getenv("FLAG") == "1" {
-		os.Args = []string{"rootTest", "subcommand", "arg1", "arg2"}
-		_ = flagArguments()
-		return
-	}
-
-	// Run the test in a subprocess
-	cmd := exec.Command(os.Args[0], "-test.run=TestFlagsProfileMissing")
-	cmd.Env = append(os.Environ(), "FLAG=1")
-	err := cmd.Run()
-
-	// Cast the error as *exec.ExitError and compare the result
-	e, ok := err.(*exec.ExitError)
-	assert.True(t, ok)
-	assert.Equal(t, "exit status 1", e.Error())
 }
 
 func TestSubCommandExists(t *testing.T) {

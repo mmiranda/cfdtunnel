@@ -1,7 +1,6 @@
 package cfdtunnel
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -18,14 +17,8 @@ const (
 )
 
 var (
-	logLevel   = log.WarnLevel
-	appVersion = "Development"
+	logLevel = log.WarnLevel
 )
-
-var CLI struct {
-	Profile string `help:"Which profile to use."`
-	Debug   bool   `help:"Enable debug mode."`
-}
 
 // TunnelConfig struct stores data to launch cloudflared process such as hostname and port.
 // It also stores preset Environment Variables needed to use together with the tunnel consumer.
@@ -51,8 +44,8 @@ func init() {
 	log.SetLevel(logLevel)
 }
 
-func main() {
-	args := flagArguments()
+// Execute runs the entire flow of cfdtunnel tool
+func (args Arguments) Execute() {
 	log.SetLevel(logLevel)
 
 	config, err := readIniConfigFile(getHomePathIniFile(iniConfigFile))
@@ -162,7 +155,10 @@ func (cfg config) readConfigSection(section string) (TunnelConfig, error) {
 		return port
 	})
 
-	envVars := secs.Key("env").ValueWithShadows()
+	envVars := []string{}
+	if secs.Key("env").ValueWithShadows()[0] != "" {
+		envVars = secs.Key("env").ValueWithShadows()
+	}
 
 	return TunnelConfig{
 		host:    host.String(),
@@ -176,39 +172,6 @@ func getHomePathIniFile(file string) string {
 	home, _ := os.UserHomeDir()
 
 	return home + "/" + file
-}
-
-// flagArguments Reads and parde the arguments passed to cfdtunnel.
-// It returns an Argument Struct containing the profile, subcommand to run and all the arguments for the subcommand
-func flagArguments() Arguments {
-
-	profile := flag.String("profile", "", "Which cfdtunnel profile to use")
-	version := flag.Bool("version", false, "Show cfdtunnel version")
-	debug := flag.Bool("debug", false, "Enable Debug mode")
-
-	flag.Parse()
-
-	if *version {
-		fmt.Println(appVersion)
-		os.Exit(0)
-	}
-
-	if *debug {
-		logLevel = log.DebugLevel
-	}
-
-	if *profile == "" {
-		fmt.Println("Usage: cfdtunnel --profile my-profile command args")
-		os.Exit(1)
-	}
-
-	args := flag.Args()
-
-	return Arguments{
-		Profile: *profile,
-		Command: args[0],
-		Args:    args[1:],
-	}
 }
 
 // checkSubCommandExists simple check if an specific binary exists in the OS
