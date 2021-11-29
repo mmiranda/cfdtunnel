@@ -32,11 +32,11 @@ You can use any command on top of *cfdtunnel*:
 
 ### Kubectl
 ```bash
-cfdtunnel --profile my-profile1 kubectl get namespaces
+cfdtunnel --profile my-profile1 -- kubectl get namespaces
 ```
 ### K9S
 ```bash
-cfdtunnel --profile my-profile1 k9s
+cfdtunnel --profile my-profile1 -- k9s
 ```
 
 ### Configuration
@@ -48,7 +48,7 @@ Example:
 [my-profile1]
 host = https://kubernetes.foo.bar.com
 port = 1234
-env = HTTPS_PROXY=127.0.0.1:1234
+env = HTTPS_PROXY=socks5://127.0.0.1:1234
 # env = OTHER=value
 
 [my-profile2]

@@ -1,4 +1,4 @@
-package main
+package cfdtunnel
 
 import (
 	"io/ioutil"
@@ -59,7 +59,7 @@ func helperCreateFile() {
 }
 
 func TestSectionComplete(t *testing.T) {
-	config, _ := readIniConfigFile("test/config")
+	config, _ := readIniConfigFile("../test/config")
 
 	tunnelCfg, err := config.readConfigSection("alias1")
 
@@ -70,7 +70,7 @@ func TestSectionComplete(t *testing.T) {
 }
 
 func TestSectionDefaultPort(t *testing.T) {
-	config, _ := readIniConfigFile("test/config")
+	config, _ := readIniConfigFile("../test/config")
 
 	tunnelCfg, err := config.readConfigSection("alias2")
 
@@ -81,26 +81,35 @@ func TestSectionDefaultPort(t *testing.T) {
 }
 
 func TestIniEnvVars(t *testing.T) {
-	config, _ := readIniConfigFile("test/config")
+	config, _ := readIniConfigFile("../test/config")
 
-	tunnelCfg, err := config.readConfigSection("test-env-var")
+	tunnelCfg, err := config.readConfigSection("alias1")
+	assert.Equal(t, []string{}, tunnelCfg.envVars)
+	assert.NoError(t, err)
+
+	tunnelCfg, err = config.readConfigSection("test-env-var")
 	assert.Equal(t, []string{"MY_ENV_VAR=value"}, tunnelCfg.envVars)
 	assert.NoError(t, err)
 
 	tunnelCfg, err = config.readConfigSection("test-multi-env-var")
-	assert.Equal(t, []string{"MY_ENV_VAR=value", "HTTPS_PROXY=127.0.0.1:5555"}, tunnelCfg.envVars)
+	assert.Equal(t, []string{"MY_ENV_VAR=value", "HTTPS_PROXY=socks5://127.0.0.1:5555", "IGNORED:value"}, tunnelCfg.envVars)
 	assert.NoError(t, err)
 
 }
 
 func TestOSEnvVars(t *testing.T) {
-	config, _ := readIniConfigFile("test/config")
+	config, _ := readIniConfigFile("../test/config")
 	tunnelCfg, _ := config.readConfigSection("test-multi-env-var")
 
 	tunnelCfg.setupEnvironmentVariables()
 
 	assert.Equal(t, "value", os.Getenv("MY_ENV_VAR"))
-	assert.Equal(t, "127.0.0.1:5555", os.Getenv("HTTPS_PROXY"))
+	assert.Equal(t, "socks5://127.0.0.1:5555", os.Getenv("HTTPS_PROXY"))
+
+	tunnelCfg, _ = config.readConfigSection("alias1")
+
+	tunnelCfg.setupEnvironmentVariables()
+	assert.Empty(t, os.Getenv("DOES_NOT_EXISTS"))
 
 }
 
@@ -127,62 +136,6 @@ func TestTunnelSamePort(t *testing.T) {
 	commandKill(cmd1)
 }
 
-// TestFlagsEnptyArguments uses the approach from Sartaj Singh on his article: https://sr-taj.medium.com/how-to-test-methods-that-kill-your-program-in-golang-e3b879185b8a
-// What we want to test here is the os.Exit(1) when flagArguments() fail with empty arguments
-func TestFlagsEmptyArguments(t *testing.T) {
-	// Run the crashing code when FLAG is set
-	if os.Getenv("FLAG") == "1" {
-		// Calls flagArguments without manipulate os.Args
-		_ = flagArguments()
-		return
-	}
-
-	// Run the test in a subprocess
-	cmd := exec.Command(os.Args[0], "-test.run=TestFlagsEmptyArguments")
-	cmd.Env = append(os.Environ(), "FLAG=1")
-	err := cmd.Run()
-
-	// Cast the error as *exec.ExitError and compare the result
-	e, ok := err.(*exec.ExitError)
-	assert.True(t, ok)
-	assert.Equal(t, "exit status 1", e.Error())
-}
-
-func TestFlagsArguments(t *testing.T) {
-
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-
-	os.Args = []string{"rootTest", "--profile", "alias", "subcommand", "arg1", "arg2"}
-	args := flagArguments()
-
-	assert.Equal(t, "alias", args.profile)
-	assert.Equal(t, "subcommand", args.command)
-	assert.Equal(t, []string{"arg1", "arg2"}, args.args)
-}
-
-func TestFlagsProfileMissing(t *testing.T) {
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-
-	// Run the crashing code when FLAG is set
-	if os.Getenv("FLAG") == "1" {
-		os.Args = []string{"rootTest", "subcommand", "arg1", "arg2"}
-		_ = flagArguments()
-		return
-	}
-
-	// Run the test in a subprocess
-	cmd := exec.Command(os.Args[0], "-test.run=TestFlagsProfileMissing")
-	cmd.Env = append(os.Environ(), "FLAG=1")
-	err := cmd.Run()
-
-	// Cast the error as *exec.ExitError and compare the result
-	e, ok := err.(*exec.ExitError)
-	assert.True(t, ok)
-	assert.Equal(t, "exit status 1", e.Error())
-}
-
 func TestSubCommandExists(t *testing.T) {
 
 	assert.True(t, checkSubCommandExists("echo"))
@@ -191,7 +144,7 @@ func TestSubCommandExists(t *testing.T) {
 }
 
 func TestConfigSectionDoesNotExists(t *testing.T) {
-	config, _ := readIniConfigFile("test/config")
+	config, _ := readIniConfigFile("../test/config")
 
 	_, err := config.readConfigSection("missing")
 
@@ -200,9 +153,9 @@ func TestConfigSectionDoesNotExists(t *testing.T) {
 
 func TestRunSubCommandStdOut(t *testing.T) {
 	args := Arguments{
-		profile: "alias",
-		command: "ls",
-		args:    []string{"README.md"},
+		Profile: "alias",
+		Command: "ls",
+		Args:    []string{"cfdtunnel.go"},
 	}
 
 	rescueStdout := os.Stdout
@@ -215,7 +168,7 @@ func TestRunSubCommandStdOut(t *testing.T) {
 	out, _ := ioutil.ReadAll(r)
 	os.Stdout = rescueStdout
 
-	assert.Equal(t, "README.md\n\n", string(out))
+	assert.Equal(t, "cfdtunnel.go\n\n", string(out))
 }
 
 func TestRunSubCommandMissing(t *testing.T) {
@@ -223,9 +176,9 @@ func TestRunSubCommandMissing(t *testing.T) {
 	// Run the crashing code when FLAG is set
 	if os.Getenv("FLAG") == "1" {
 		args := Arguments{
-			profile: "alias",
-			command: "lsssss",
-			args:    nil,
+			Profile: "alias",
+			Command: "lsssss",
+			Args:    nil,
 		}
 		args.runSubCommand()
 
@@ -241,5 +194,15 @@ func TestRunSubCommandMissing(t *testing.T) {
 	e, ok := err.(*exec.ExitError)
 	assert.True(t, ok)
 	assert.Equal(t, "exit status 1", e.Error())
+
+}
+
+func TestNewTunnel(t *testing.T) {
+
+	tunnel := NewTunnel("test", []string{"cmd", "arg", "arg"})
+	assert.IsType(t, &Arguments{}, tunnel)
+	assert.Equal(t, "test", tunnel.Profile)
+	assert.Equal(t, "cmd", tunnel.Command)
+	assert.Equal(t, []string{"arg", "arg"}, tunnel.Args)
 
 }
