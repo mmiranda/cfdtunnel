@@ -91,7 +91,7 @@ func commandKill(cmd *exec.Cmd) {
 func (args Arguments) runSubCommand() {
 	log.Debugf("Running subcommand: %v", args.Command)
 	if !checkSubCommandExists(args.Command) {
-		os.Exit(1)
+		return
 	}
 
 	output, err := exec.Command(args.Command, args.Args...).CombinedOutput()
@@ -99,7 +99,7 @@ func (args Arguments) runSubCommand() {
 	fmt.Println(string(output))
 
 	if err != nil {
-		log.Fatalf("An error occurred trying to run the command %v: %v", args.Command, err)
+		log.Errorf("An error occurred trying to run the command %v: %v", args.Command, err)
 	}
 
 }
