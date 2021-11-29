@@ -22,6 +22,7 @@ var rootCmd = &cobra.Command{
 	Long: `cfdtunnel creates your cloudflare tunnel clients
 on the fly only when you need to use them.`,
 	Args: func(cmd *cobra.Command, args []string) error {
+
 		if len(args) < 1 {
 			return errors.New("sub-command to execute is required")
 		}
@@ -66,8 +67,8 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
-	rootCmd.PersistentFlags().StringVar(&profile, "profile", "", "Which cfdtunnel profile to use")
-	_ = rootCmd.MarkPersistentFlagRequired("profile")
+	rootCmd.Flags().StringVar(&profile, "profile", "", "Which cfdtunnel profile to use")
+	_ = rootCmd.MarkFlagRequired("profile")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable Debug Mode.")
 
 	// rootCmd.SetUsageFunc(func(*cobra.Command) error { return nil })
