@@ -72,5 +72,25 @@ func init() {
 
 	// rootCmd.SetUsageFunc(func(*cobra.Command) error { return nil })
 
-	rootCmd.SetUsageTemplate("\nUsage: cfdtool --profile <...> -- <command> <args>\n")
+	rootCmd.SetUsageTemplate(getUsage())
+	rootCmd.SilenceErrors = true
+}
+
+func getUsage() string {
+	// usage := "\n\n"
+
+	usage := `
+Usage: cfdtool --profile <...> -- <sub-command> <args>
+  
+Available Commands:
+version     Version will output the current build information
+help        Prints this usage help
+
+Flags:
+-d, --debug            Enable Debug Mode.
+-h, --help             help for cfdtunnel
+--profile string   Which cfdtunnel profile to use
+`
+
+	return usage
 }
