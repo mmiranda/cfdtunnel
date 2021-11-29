@@ -7,7 +7,7 @@ builds:
   - env:
       - CGO_ENABLED=0
     ldflags:
-      - '-s -w -X main.AppVersion={{.Version}}'
+      - '-s -w -X github.com/mmiranda/cfdtunnel/cmd.version={{.Version}} -X github.com/mmiranda/cfdtunnel/cmd.commit={{.Commit}} -X github.com/mmiranda/cfdtunnel/cmd.date={{.Date}}'
     goos:
       - linux
       - darwin
@@ -50,4 +50,4 @@ brews:
     license: "MIT"
 
     test: |
-      system "#{bin}/program", "--version"
+      system "#{bin}/program", "version"
