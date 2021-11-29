@@ -92,7 +92,7 @@ func TestIniEnvVars(t *testing.T) {
 	assert.NoError(t, err)
 
 	tunnelCfg, err = config.readConfigSection("test-multi-env-var")
-	assert.Equal(t, []string{"MY_ENV_VAR=value", "HTTPS_PROXY=127.0.0.1:5555"}, tunnelCfg.envVars)
+	assert.Equal(t, []string{"MY_ENV_VAR=value", "HTTPS_PROXY=socks5://127.0.0.1:5555"}, tunnelCfg.envVars)
 	assert.NoError(t, err)
 
 }
@@ -104,7 +104,7 @@ func TestOSEnvVars(t *testing.T) {
 	tunnelCfg.setupEnvironmentVariables()
 
 	assert.Equal(t, "value", os.Getenv("MY_ENV_VAR"))
-	assert.Equal(t, "127.0.0.1:5555", os.Getenv("HTTPS_PROXY"))
+	assert.Equal(t, "socks5://127.0.0.1:5555", os.Getenv("HTTPS_PROXY"))
 
 	tunnelCfg, _ = config.readConfigSection("alias1")
 

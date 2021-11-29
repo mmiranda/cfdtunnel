@@ -1,10 +1,14 @@
 # Copy this config file to ~/.cfdtunnel/config
 
+# Alias that cfdtool will look for
 [my-profile1]
+# hostame the tunnel will start
 host = https://kubernetes.foo.bar.com
+# Port (Default 5555)
 port = 1234
-env = HTTPS_PROXY=127.0.0.1:1234
-env = RANDOM=value
+env = HTTPS_PROXY=socks5://127.0.0.1:1234
+# Set multi environment variables are allowed
+env = MULTI_VALUE=allowed
 
 [my-profile2]
 host = sql.foo.bar.com
