@@ -192,8 +192,8 @@ func TestRunSubCommandMissing(t *testing.T) {
 
 	// Cast the error as *exec.ExitError and compare the result
 	e, ok := err.(*exec.ExitError)
-	assert.True(t, ok)
-	assert.Equal(t, "exit status 1", e.Error())
+	assert.False(t, ok)
+	assert.Nil(t, e)
 
 }
 
