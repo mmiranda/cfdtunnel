@@ -196,3 +196,13 @@ func TestRunSubCommandMissing(t *testing.T) {
 	assert.Equal(t, "exit status 1", e.Error())
 
 }
+
+func TestNewTunnel(t *testing.T) {
+
+	tunnel := NewTunnel("test", []string{"cmd", "arg", "arg"})
+	assert.IsType(t, &Arguments{}, tunnel)
+	assert.Equal(t, "test", tunnel.Profile)
+	assert.Equal(t, "cmd", tunnel.Command)
+	assert.Equal(t, []string{"arg", "arg"}, tunnel.Args)
+
+}

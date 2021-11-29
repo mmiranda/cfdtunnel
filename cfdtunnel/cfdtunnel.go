@@ -17,7 +17,8 @@ const (
 )
 
 var (
-	logLevel = log.WarnLevel
+	// Loglevel sets the level of each log
+	LogLevel = log.WarnLevel
 )
 
 // TunnelConfig struct stores data to launch cloudflared process such as hostname and port.
@@ -41,12 +42,12 @@ type Arguments struct {
 
 func init() {
 	log.SetOutput(os.Stdout)
-	log.SetLevel(logLevel)
+	log.SetLevel(LogLevel)
 }
 
 // Execute runs the entire flow of cfdtunnel tool
 func (args Arguments) Execute() {
-	log.SetLevel(logLevel)
+	log.SetLevel(LogLevel)
 
 	config, err := readIniConfigFile(getHomePathIniFile(iniConfigFile))
 
@@ -65,6 +66,15 @@ func (args Arguments) Execute() {
 
 	// Kill it:
 	commandKill(cmd)
+}
+
+func NewTunnel(profile string, cmdArguments []string) *Arguments {
+
+	return &Arguments{
+		Profile: profile,
+		Command: cmdArguments[0],
+		Args:    cmdArguments[1:],
+	}
 }
 
 // commandKill Kills an specific *exec.Cmd command

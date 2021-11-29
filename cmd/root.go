@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/mmiranda/cfdtunnel/cfdtunnel"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	goVersion "go.hein.dev/go-version"
 )
@@ -19,14 +21,21 @@ var rootCmd = &cobra.Command{
 	Short: "Manage multiple cloudflared clients for you",
 	Long: `cfdtunnel creates your cloudflare tunnel clients
 on the fly only when you need to use them.`,
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return errors.New("sub-command to execute is required")
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		cfdtunnel := cfdtunnel.Arguments{
-			Profile: profile,
-			Command: args[0],
-			Args:    args[1:],
+
+		if debug {
+			cfdtunnel.LogLevel = log.DebugLevel
 		}
 
+		cfdtunnel := cfdtunnel.NewTunnel(profile, args)
 		cfdtunnel.Execute()
+
 	},
 }
 
@@ -59,6 +68,9 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&profile, "profile", "", "Which cfdtunnel profile to use")
 	_ = rootCmd.MarkPersistentFlagRequired("profile")
-	rootCmd.PersistentFlags().BoolVarP(&debug, "short", "d", false, "Enable Debug Mode.")
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable Debug Mode.")
 
+	// rootCmd.SetUsageFunc(func(*cobra.Command) error { return nil })
+
+	rootCmd.SetUsageTemplate("\nUsage: cfdtool --profile <...> -- <command> <args>\n")
 }
