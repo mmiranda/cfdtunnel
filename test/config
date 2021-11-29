@@ -9,6 +9,7 @@ host = sql.foo.bar.com
 host = foo.bar.com
 env = MY_ENV_VAR=value
 env = HTTPS_PROXY=socks5://127.0.0.1:5555
+env = IGNORED:value
 
 [test-env-var]
 host = foo.bar.com

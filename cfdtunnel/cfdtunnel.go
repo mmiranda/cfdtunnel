@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	// Loglevel sets the level of each log
+	// LogLevel sets the level of each log
 	LogLevel = log.WarnLevel
 )
 
@@ -68,6 +68,7 @@ func (args Arguments) Execute() {
 	commandKill(cmd)
 }
 
+// NewTunnel returns a new instance of the tunnel arguments to be executed
 func NewTunnel(profile string, cmdArguments []string) *Arguments {
 
 	return &Arguments{
@@ -120,6 +121,9 @@ func readIniConfigFile(configFile string) (config, error) {
 // setupEnvironmentVariables Sets every environment variables that are expected and informed on the config file
 func (tunnelConfig TunnelConfig) setupEnvironmentVariables() {
 	for _, env := range tunnelConfig.envVars {
+		if !strings.Contains(env, "=") {
+			continue
+		}
 		iniEnv := strings.Split(env, "=")
 		log.Debugf("Exporting Environment variable: %v", env)
 		os.Setenv(iniEnv[0], iniEnv[1])
