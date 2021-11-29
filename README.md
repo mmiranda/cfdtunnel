@@ -7,6 +7,15 @@
 # Cloudflared Tunnel Wrapper
 **cfdtunnel** is a wrapper for [cloudflared](https://github.com/cloudflare/cloudflared) `access` tunnel, designed to access multiple tunnels without having to worry about your `cloudflared` process.
 
+### Why?
+To manage the **cloudflared** process is tedious and error prone when using multiple tunnels, leading to port conflicts, clients left running for no reason and so on.
+
+This tool automates the following process: 
+```bash
+cloudflared access tcp --hostname foo.bar.com --url 127.0.0.1:1234
+cloudflared access tcp --hostname foo.bar2.com --url 127.0.0.1:5678
+cloudflared access tcp --hostname foo.bar3.com --url 127.0.0.1:xxxx
+```
 
 ## Installation
 
