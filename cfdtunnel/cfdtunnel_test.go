@@ -175,9 +175,6 @@ func TestRunSubCommandStdOut(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	// config, _ := readIniConfigFile("../test/config")
-	// tunnelCfg, _ := config.readConfigSection("alias1")
-
 	args.runSubCommand(TunnelConfig{})
 
 	w.Close()
