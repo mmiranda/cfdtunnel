@@ -40,6 +40,10 @@ type Arguments struct {
 	Args    []string
 }
 
+type subCommand struct {
+	*exec.Cmd
+}
+
 func init() {
 	log.SetOutput(os.Stdout)
 	log.SetLevel(LogLevel)
@@ -60,9 +64,10 @@ func (args Arguments) Execute() {
 	if err != nil {
 		log.Fatalf("An error occurred reading your INI file: %v", err.Error())
 	}
-	tunnelConfig.setupEnvironmentVariables()
+
 	cmd := tunnelConfig.startProxyTunnel()
-	args.runSubCommand()
+
+	args.runSubCommand(tunnelConfig)
 
 	// Kill it:
 	commandKill(cmd)
@@ -88,13 +93,15 @@ func commandKill(cmd *exec.Cmd) {
 }
 
 // runSubCommand Runs the SubCommand and its arguments passed to cfdtunnel
-func (args Arguments) runSubCommand() {
+func (args Arguments) runSubCommand(tunnelConfig TunnelConfig) {
 	log.Debugf("Running subcommand: %v", args.Command)
 	if !checkSubCommandExists(args.Command) {
 		return
 	}
 
-	output, err := exec.Command(args.Command, args.Args...).CombinedOutput()
+	cmd := subCommand{exec.Command(args.Command, args.Args...)}
+	cmd.setupEnvironmentVariables(tunnelConfig.envVars)
+	output, err := cmd.CombinedOutput()
 
 	fmt.Println(string(output))
 
@@ -119,14 +126,17 @@ func readIniConfigFile(configFile string) (config, error) {
 }
 
 // setupEnvironmentVariables Sets every environment variables that are expected and informed on the config file
-func (tunnelConfig TunnelConfig) setupEnvironmentVariables() {
-	for _, env := range tunnelConfig.envVars {
+func (command subCommand) setupEnvironmentVariables(envVars []string) {
+
+	command.Env = os.Environ()
+
+	for _, env := range envVars {
 		if !strings.Contains(env, "=") {
 			continue
 		}
 		iniEnv := strings.Split(env, "=")
 		log.Debugf("Exporting Environment variable: %v", env)
-		os.Setenv(iniEnv[0], iniEnv[1])
+		command.Env = append(command.Env, iniEnv[0]+"="+iniEnv[1])
 	}
 }
 

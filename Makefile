@@ -1,6 +1,6 @@
 .PHONY: test
 test:
-	gotest -v ./... -race -coverprofile=coverage.out -covermode=atomic
+	gotest -v ./... -coverprofile=coverage.out -covermode=atomic
 
 build:
 	go build

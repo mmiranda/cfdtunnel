@@ -101,16 +101,29 @@ func TestOSEnvVars(t *testing.T) {
 	config, _ := readIniConfigFile("../test/config")
 	tunnelCfg, _ := config.readConfigSection("test-multi-env-var")
 
-	tunnelCfg.setupEnvironmentVariables()
+	cmd := subCommand{exec.Command("ls")}
 
-	assert.Equal(t, "value", os.Getenv("MY_ENV_VAR"))
-	assert.Equal(t, "socks5://127.0.0.1:5555", os.Getenv("HTTPS_PROXY"))
+	cmd.setupEnvironmentVariables(tunnelCfg.envVars)
+
+	assert.True(t, contains(cmd.Env, "MY_ENV_VAR=value"))
+	assert.True(t, contains(cmd.Env, "HTTPS_PROXY=socks5://127.0.0.1:5555"))
 
 	tunnelCfg, _ = config.readConfigSection("alias1")
 
-	tunnelCfg.setupEnvironmentVariables()
-	assert.Empty(t, os.Getenv("DOES_NOT_EXISTS"))
+	cmd = subCommand{exec.Command("ls")}
+	cmd.setupEnvironmentVariables(tunnelCfg.envVars)
 
+	assert.False(t, contains(cmd.Env, "MY_ENV_VAR=value"))
+
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
 
 func TestProxyTunnel(t *testing.T) {
@@ -162,7 +175,10 @@ func TestRunSubCommandStdOut(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	args.runSubCommand()
+	// config, _ := readIniConfigFile("../test/config")
+	// tunnelCfg, _ := config.readConfigSection("alias1")
+
+	args.runSubCommand(TunnelConfig{})
 
 	w.Close()
 	out, _ := ioutil.ReadAll(r)
@@ -180,7 +196,7 @@ func TestRunSubCommandMissing(t *testing.T) {
 			Command: "lsssss",
 			Args:    nil,
 		}
-		args.runSubCommand()
+		args.runSubCommand(TunnelConfig{})
 
 		return
 	}
