@@ -1,15 +1,19 @@
 package cfdtunnel
 
 import (
+	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 	"testing"
 
 	"log"
 
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/proxy"
 	"gopkg.in/ini.v1"
 )
 
@@ -217,5 +221,27 @@ func TestNewTunnel(t *testing.T) {
 	assert.Equal(t, "test", tunnel.Profile)
 	assert.Equal(t, "cmd", tunnel.Command)
 	assert.Equal(t, []string{"arg", "arg"}, tunnel.Args)
+
+}
+
+// TestSock5ProxyRunning launches the proxy tunnel and try to use it calling google.com
+// If the result does not have "connection refused" we assume the proxy is running and responding
+func TestSocks5ProxyRunning(t *testing.T) {
+	tunnelConfig := TunnelConfig{"foo.bar", "1234", nil}
+	cmd := tunnelConfig.startProxyTunnel()
+	dialSocksProxy, err := proxy.SOCKS5("tcp", "127.0.0.1:1234", nil, proxy.Direct)
+	if err != nil {
+		fmt.Println("Error connecting to proxy:", err)
+	}
+	tr := &http.Transport{Dial: dialSocksProxy.Dial}
+
+	// Create client
+	myClient := &http.Client{
+		Transport: tr,
+	}
+
+	_, err = myClient.Get("https://google.com")
+	commandKill(cmd)
+	assert.False(t, strings.Contains(err.Error(), "connect: connection refused"))
 
 }
