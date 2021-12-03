@@ -1,6 +1,6 @@
 # Copy this config file to ~/.cfdtunnel/config
 
-# Alias that cfdtool will look for
+# Alias that cfdtunnel will look for
 [my-profile1]
 # hostame the tunnel will start
 host = https://kubernetes.foo.bar.com

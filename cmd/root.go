@@ -81,8 +81,8 @@ func getUsage() string {
 	// usage := "\n\n"
 
 	usage := `
-Usage: cfdtool --profile <...> -- <sub-command> <args>
-  
+Usage: cfdtunnel --profile <...> -- <sub-command> <args>
+
 Available Commands:
 version     Version will output the current build information
 help        Prints this usage help
