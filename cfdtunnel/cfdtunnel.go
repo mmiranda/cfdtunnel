@@ -1,7 +1,6 @@
 package cfdtunnel
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -100,10 +99,14 @@ func (args Arguments) runSubCommand(tunnelConfig TunnelConfig) {
 	}
 
 	cmd := subCommand{exec.Command(args.Command, args.Args...)}
-	cmd.setupEnvironmentVariables(tunnelConfig.envVars)
-	output, err := cmd.CombinedOutput()
 
-	fmt.Println(string(output))
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	cmd.setupEnvironmentVariables(tunnelConfig.envVars)
+
+	err := cmd.Run()
 
 	if err != nil {
 		log.Errorf("An error occurred trying to run the command %v: %v", args.Command, err)
