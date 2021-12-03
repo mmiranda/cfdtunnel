@@ -185,7 +185,7 @@ func TestRunSubCommandStdOut(t *testing.T) {
 	out, _ := ioutil.ReadAll(r)
 	os.Stdout = rescueStdout
 
-	assert.Equal(t, "cfdtunnel.go\n\n", string(out))
+	assert.Equal(t, "cfdtunnel.go\n", string(out))
 }
 
 func TestRunSubCommandMissing(t *testing.T) {
