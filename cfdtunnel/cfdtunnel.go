@@ -11,19 +11,22 @@ import (
 )
 
 const (
-	iniConfigFile          = ".cfdtunnel/config"
+	localClientDefaultUrl  = "127.0.0.1"
 	localClientDefaultPort = "5555"
 )
 
 var (
 	// LogLevel sets the level of each log
 	LogLevel = log.WarnLevel
+	// IniConfigFile sets the path of config file
+	IniConfigFile = ".cfdtunnel/config"
 )
 
 // TunnelConfig struct stores data to launch cloudflared process such as hostname and port.
 // It also stores preset Environment Variables needed to use together with the tunnel consumer.
 type TunnelConfig struct {
 	host    string
+	url     string
 	port    string
 	envVars []string
 }
@@ -52,7 +55,7 @@ func init() {
 func (args Arguments) Execute() {
 	log.SetLevel(LogLevel)
 
-	config, err := readIniConfigFile(getHomePathIniFile(iniConfigFile))
+	config, err := readIniConfigFile(getHomePathIniFile(IniConfigFile))
 
 	if err != nil {
 		log.Fatalf("An error occurred reading your INI file: %v", err.Error())
@@ -182,6 +185,13 @@ func (cfg config) readConfigSection(section string) (TunnelConfig, error) {
 		return port
 	})
 
+	url := secs.Key("url").Validate(func(url string) string {
+		if len(url) == 0 {
+			return localClientDefaultUrl
+		}
+		return url
+	})
+
 	envVars := []string{}
 	if secs.Key("env").ValueWithShadows()[0] != "" {
 		envVars = secs.Key("env").ValueWithShadows()
@@ -189,6 +199,7 @@ func (cfg config) readConfigSection(section string) (TunnelConfig, error) {
 
 	return TunnelConfig{
 		host:    host.String(),
+		url:     url,
 		port:    port,
 		envVars: envVars,
 	}, nil
