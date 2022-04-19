@@ -131,7 +131,7 @@ func contains(s []string, e string) bool {
 }
 
 func TestProxyTunnel(t *testing.T) {
-	tunnelConfig := TunnelConfig{"foo.bar", "1234", nil}
+	tunnelConfig := TunnelConfig{"foo.bar", "127.0.0.1", "1234", nil}
 	cmd := tunnelConfig.startProxyTunnel()
 	osPid, _ := os.FindProcess(cmd.Process.Pid)
 	assert.Equal(t, cmd.Process.Pid, osPid.Pid)
@@ -141,10 +141,10 @@ func TestProxyTunnel(t *testing.T) {
 
 func TestTunnelSamePort(t *testing.T) {
 
-	tunnelCfg := TunnelConfig{"foo.bar.first", "1234", nil}
+	tunnelCfg := TunnelConfig{"foo.bar.first", "127.0.0.1", "1234", nil}
 	cmd1 := tunnelCfg.startProxyTunnel()
 
-	tunnelCfg = TunnelConfig{"foo.bar.first", "1234", nil}
+	tunnelCfg = TunnelConfig{"foo.bar.first", "127.0.0.1", "1234", nil}
 	cmd2 := tunnelCfg.startProxyTunnel()
 
 	err := cmd2.Wait()
@@ -227,7 +227,7 @@ func TestNewTunnel(t *testing.T) {
 // TestSock5ProxyRunning launches the proxy tunnel and try to use it calling google.com
 // If the result does not have "connection refused" we assume the proxy is running and responding
 func TestSocks5ProxyRunning(t *testing.T) {
-	tunnelConfig := TunnelConfig{"foo.bar", "1234", nil}
+	tunnelConfig := TunnelConfig{"foo.bar", "127.0.0.1", "1234", nil}
 	cmd := tunnelConfig.startProxyTunnel()
 	dialSocksProxy, err := proxy.SOCKS5("tcp", "127.0.0.1:1234", nil, proxy.Direct)
 	if err != nil {

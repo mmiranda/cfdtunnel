@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	localClientDefaultUrl  = "127.0.0.1"
 	localClientDefaultPort = "5555"
 )
 
@@ -25,6 +26,7 @@ var (
 // It also stores preset Environment Variables needed to use together with the tunnel consumer.
 type TunnelConfig struct {
 	host    string
+	url     string
 	port    string
 	envVars []string
 }
@@ -183,6 +185,13 @@ func (cfg config) readConfigSection(section string) (TunnelConfig, error) {
 		return port
 	})
 
+	url := secs.Key("url").Validate(func(url string) string {
+		if len(url) == 0 {
+			return localClientDefaultUrl
+		}
+		return url
+	})
+
 	envVars := []string{}
 	if secs.Key("env").ValueWithShadows()[0] != "" {
 		envVars = secs.Key("env").ValueWithShadows()
@@ -190,6 +199,7 @@ func (cfg config) readConfigSection(section string) (TunnelConfig, error) {
 
 	return TunnelConfig{
 		host:    host.String(),
+		url:     url,
 		port:    port,
 		envVars: envVars,
 	}, nil
