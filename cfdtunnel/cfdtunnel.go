@@ -11,13 +11,14 @@ import (
 )
 
 const (
-	iniConfigFile          = ".cfdtunnel/config"
 	localClientDefaultPort = "5555"
 )
 
 var (
 	// LogLevel sets the level of each log
 	LogLevel = log.WarnLevel
+	// IniConfigFile sets the path of config file
+	IniConfigFile = ".cfdtunnel/config"
 )
 
 // TunnelConfig struct stores data to launch cloudflared process such as hostname and port.
@@ -52,7 +53,7 @@ func init() {
 func (args Arguments) Execute() {
 	log.SetLevel(LogLevel)
 
-	config, err := readIniConfigFile(getHomePathIniFile(iniConfigFile))
+	config, err := readIniConfigFile(getHomePathIniFile(IniConfigFile))
 
 	if err != nil {
 		log.Fatalf("An error occurred reading your INI file: %v", err.Error())
