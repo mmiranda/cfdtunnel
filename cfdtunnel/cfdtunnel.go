@@ -192,16 +192,11 @@ func (cfg config) readConfigSection(section string) (TunnelConfig, error) {
 		return url
 	})
 
-	envVars := []string{}
-	if secs.Key("env").ValueWithShadows()[0] != "" {
-		envVars = secs.Key("env").ValueWithShadows()
-	}
-
 	return TunnelConfig{
 		host:    host.String(),
 		url:     url,
 		port:    port,
-		envVars: envVars,
+		envVars: secs.Key("env").ValueWithShadows(),
 	}, nil
 }
 
