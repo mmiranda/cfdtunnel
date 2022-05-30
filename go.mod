@@ -21,6 +21,6 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9
-	gopkg.in/ini.v1 v1.66.4
+	gopkg.in/ini.v1 v1.66.5
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
