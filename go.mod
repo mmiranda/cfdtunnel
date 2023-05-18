@@ -18,7 +18,7 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.2
 	github.com/spf13/cobra v1.5.0
 	golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9
 	gopkg.in/ini.v1 v1.66.6
