@@ -3,7 +3,7 @@ module github.com/mmiranda/cfdtunnel
 go 1.17
 
 require (
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.3
 	go.hein.dev/go-version v0.1.0
 )
 
